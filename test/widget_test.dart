@@ -1,30 +1,87 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+class SignInFormBloc extends Bloc<SignInFormEvent, SignInFormState> {
+  final IAuthFacade _authFacade;
 
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
+  SignInFormBloc(this._authFacade) : super(SignInFormState.initial()) {
+    on<SignInFormEvent>((events, emit) async {
+      events.map(
+        emailChanged: (event) async => await _emailChanged(event, emit),
+        passwordChanged: (event) async => await _passwordChanged(event, emit),
+        registerWithEmailAndPasswordPressed: (event) async =>
+            await _registerWithEmailAndPasswordPressed(event, emit),
+        signInWithEmailAndPasswordPressed: (event) async =>
+            await _singInWithEmailAndPasswordPressed(event, emit),
+        signInWithGooglePressed: (event) async =>
+            await _signInWithGooglePressed(event, emit),
+      );
+    });
+  }
 
-import 'package:todo_ddd/main.dart';
+  _emailChanged(EmailChanged event, Emitter<SignInFormState> emit) async {
+    emit(state.copyWith(
+      emailAddress: EmailAddress(event.emailStr),
+      authFailureOrSuccessOption: none(),
+    ));
+  }
 
-void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  _passwordChanged(PasswordChanged event, Emitter<SignInFormState> emit) async {
+    emit(state.copyWith(
+      emailAddress: EmailAddress(event.passwordStr),
+      authFailureOrSuccessOption: none(),
+    ));
+  }
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  _registerWithEmailAndPasswordPressed(
+      RegisterWithEmailAndPasswordPressed event,
+      Emitter<SignInFormState> emit) async {
+    await _performActionOnAuthFacadeWithEmailAndPassword(
+        _authFacade.registerWithEmailAndPassword, emit);
+  }
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  _singInWithEmailAndPasswordPressed(SignInWithEmailAndPasswordPressed event,
+      Emitter<SignInFormState> emit) async {
+    await _performActionOnAuthFacadeWithEmailAndPassword(
+        _authFacade.signInWithEmailAndPassword, emit);
+  }
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
-  });
+  _signInWithGooglePressed(
+      SignInWithGooglePressed event, Emitter<SignInFormState> emit) async {
+    emit(state.copyWith(
+      isSubmitting: true,
+      authFailureOrSuccessOption: none(),
+    ));
+    final failureOrSuccess = await _authFacade.signInWithGoogle();
+    emit(state.copyWith(
+      isSubmitting: false,
+      authFailureOrSuccessOption: some(failureOrSuccess),
+    ));
+  }
+
+  _performActionOnAuthFacadeWithEmailAndPassword(
+    Future<Either<AuthFailure, Unit>> Function({
+      required EmailAddress emailAddress,
+      required Password password,
+    }) forwardedCall,
+    Emitter<SignInFormState> emit,
+  ) async {
+    Either<AuthFailure, Unit>? failureOrSuccess;
+
+    final isEmailValid = state.emailAddress.isValid();
+    final isPasswordValid = state.password.isValid();
+
+    if (isEmailValid && isPasswordValid) {
+      emit(state.copyWith(
+        isSubmitting: true,
+        authFailureOrSuccessOption: none(),
+      ));
+
+      failureOrSuccess = await forwardedCall(
+          emailAddress: state.emailAddress, password: state.password);
+    }
+
+    emit(state.copyWith(
+      isSubmitting: false,
+      showErrorMessages: true,
+      authFailureOrSuccessOption: optionOf(failureOrSuccess),
+    ));
+  }
 }
