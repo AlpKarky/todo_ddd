@@ -15,14 +15,15 @@ dependencies:
   cupertino_icons: ^1.0.5
 
   #Authentication
-  firebase_auth: ^4.7.3
+  firebase_auth: ^4.8.0
   google_sign_in: ^6.1.4
 
   #Navigation
-  auto_route: ^7.8.0
+  auto_route: ^7.8.2
 
   #Database
   firebase_core: ^2.15.1
+  cloud_firestore: ^4.9.0
 
   #State Management
   flutter_bloc: ^8.1.3
@@ -35,6 +36,7 @@ dependencies:
   #Util
   dartz: ^0.10.1
   freezed_annotation: ^2.4.1
+  json_annotation: ^4.8.1
   uuid: ^3.0.7
 
 dev_dependencies:
@@ -45,6 +47,7 @@ dev_dependencies:
   freezed: ^2.4.2
   injectable_generator: ^2.4.0
   auto_route_generator: ^7.3.1
+  json_serializable: ^6.7.1
   flutter_lints: ^2.0.2
 
 flutter:
