@@ -1,11 +1,9 @@
-import 'dart:ffi';
-
 import 'package:dartz/dartz.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:todo_ddd/domain/notes/value_objects.dart';
 
 import '../core/failures.dart';
 import '../core/value_objects.dart';
+import 'value_objects.dart';
 
 part 'todo_item.freezed.dart';
 
