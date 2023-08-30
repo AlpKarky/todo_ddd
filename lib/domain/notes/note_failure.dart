@@ -7,4 +7,5 @@ abstract class NoteFailure with _$NoteFailure {
   const factory NoteFailure.unExpected() = _UnExpected;
   const factory NoteFailure.insufficientPermissions() =
       _InsufficientPermissions;
+  const factory NoteFailure.unableToUpdate() = _UnableToUpdate;
 }

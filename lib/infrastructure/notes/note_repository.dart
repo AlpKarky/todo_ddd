@@ -73,20 +73,60 @@ class NoteRepository implements INoteRepository {
   }
 
   @override
-  Future<Either<NoteFailure, Unit>> create(Note note) {
-    // TODO: implement create
-    throw UnimplementedError();
+  Future<Either<NoteFailure, Unit>> create(Note note) async {
+    try {
+      final userDoc = await _firestore.userDocument();
+      final noteDTO = NoteDTO.fromDomain(note);
+
+      await userDoc.noteCollection.doc(noteDTO.noteId).set(noteDTO.toJson());
+
+      return right(unit);
+    } on FirebaseException catch (e) {
+      if (e.message != null && e.message!.contains('permission-denied')) {
+        return left(const NoteFailure.insufficientPermissions());
+      } else {
+        return left(const NoteFailure.unExpected());
+      }
+    }
   }
 
   @override
-  Future<Either<NoteFailure, Unit>> delete(Note note) {
-    // TODO: implement delete
-    throw UnimplementedError();
+  Future<Either<NoteFailure, Unit>> update(Note note) async {
+    try {
+      final userDoc = await _firestore.userDocument();
+      final noteDTO = NoteDTO.fromDomain(note);
+
+      await userDoc.noteCollection.doc(noteDTO.noteId).update(noteDTO.toJson());
+
+      return right(unit);
+    } on FirebaseException catch (e) {
+      if (e.message != null && e.message!.contains('permission-denied')) {
+        return left(const NoteFailure.insufficientPermissions());
+      } else if (e.message != null && e.message!.contains('not-found')) {
+        return left(const NoteFailure.unableToUpdate());
+      } else {
+        return left(const NoteFailure.unExpected());
+      }
+    }
   }
 
   @override
-  Future<Either<NoteFailure, Unit>> update(Note note) {
-    // TODO: implement update
-    throw UnimplementedError();
+  Future<Either<NoteFailure, Unit>> delete(Note note) async {
+    try {
+      final userDoc = await _firestore.userDocument();
+      final noteId = note.id.getOrCrash();
+
+      await userDoc.noteCollection.doc(noteId).delete();
+
+      return right(unit);
+    } on FirebaseException catch (e) {
+      if (e.message != null && e.message!.contains('permission-denied')) {
+        return left(const NoteFailure.insufficientPermissions());
+      } else if (e.message != null && e.message!.contains('not-found')) {
+        return left(const NoteFailure.unableToUpdate());
+      } else {
+        return left(const NoteFailure.unExpected());
+      }
+    }
   }
 }
